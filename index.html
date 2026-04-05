@@ -20,43 +20,66 @@
         .logout-btn {
             background-color: #d13438;
         }
+        .user-info {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div id="app">
         <h1>My Static Web App with SSO</h1>
         <div id="auth-status">
-            <p>Checking authentication status...</p>
+            <p>Loading...</p>
         </div>
     </div>
 
     <script>
-        // Check if user is authenticated
-        fetch('/.auth/me')
-            .then(response => response.json())
-            .then(data => {
-                const authDiv = document.getElementById('auth-status');
+        async function checkAuth() {
+            const authDiv = document.getElementById('auth-status');
+            
+            try {
+                const response = await fetch('/.auth/me');
+                const data = await response.json();
+                
                 if (data && data.length > 0 && data[0].user_id) {
-                    // User is logged in
+                    const user = data[0];
+                    const userEmail = user.user_details?.user_principal_name || 
+                                     user.user_details?.email || 
+                                     user.user_id;
+                    const userName = user.user_details?.name || userEmail;
+                    
                     authDiv.innerHTML = `
-                        <p>Welcome, ${data[0].user_details?.name || 'User'}!</p>
-                        <p>You are successfully authenticated.</p>
-                        <a href="/.auth/logout"><button class="logout-btn">Logout</button></a>
+                        <div class="user-info">
+                            <h2>Welcome, ${userName}!</h2>
+                            <p><strong>Email:</strong> ${userEmail}</p>
+                            <p><strong>User ID:</strong> ${user.user_id}</p>
+                            <p>You are successfully authenticated.</p>
+                            <a href="/.auth/logout"><button class="logout-btn">Logout</button></a>
+                        </div>
                     `;
                 } else {
-                    // User is not logged in
                     authDiv.innerHTML = `
-                        <p>Please log in to access the application</p>
-                        <a href="/.auth/login/aad"><button>Login with SSO</button></a>
+                        <div>
+                            <p>Please log in to access the application</p>
+                            <a href="/.auth/login/aad"><button>Login with SSO</button></a>
+                        </div>
                     `;
                 }
-            })
-            .catch(error => {
-                document.getElementById('auth-status').innerHTML = `
-                    <p>Please log in to access the application</p>
-                    <a href="/.auth/login/aad"><button>Login with SSO</button></a>
+            } catch (error) {
+                authDiv.innerHTML = `
+                    <div>
+                        <p>Please log in to access the application</p>
+                        <a href="/.auth/login/aad"><button>Login with SSO</button></a>
+                    </div>
                 `;
-            });
+            }
+        }
+        
+        checkAuth();
     </script>
 </body>
 </html>
