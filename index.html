@@ -1,10 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Static Web App</title>
+    <title>My Static Web App with SSO</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .logout-btn {
+            background-color: #d13438;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello from Azure!</h1>
-    <p>My static web app is working.</p>
+    <div id="app">
+        <h1>My Static Web App with SSO</h1>
+        <div id="auth-status">
+            <p>Checking authentication status...</p>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is authenticated
+        fetch('/.auth/me')
+            .then(response => response.json())
+            .then(data => {
+                const authDiv = document.getElementById('auth-status');
+                if (data && data.length > 0 && data[0].user_id) {
+                    // User is logged in
+                    authDiv.innerHTML = `
+                        <p>Welcome, ${data[0].user_details?.name || 'User'}!</p>
+                        <p>You are successfully authenticated.</p>
+                        <a href="/.auth/logout"><button class="logout-btn">Logout</button></a>
+                    `;
+                } else {
+                    // User is not logged in
+                    authDiv.innerHTML = `
+                        <p>Please log in to access the application</p>
+                        <a href="/.auth/login/aad"><button>Login with SSO</button></a>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('auth-status').innerHTML = `
+                    <p>Please log in to access the application</p>
+                    <a href="/.auth/login/aad"><button>Login with SSO</button></a>
+                `;
+            });
+    </script>
 </body>
 </html>
